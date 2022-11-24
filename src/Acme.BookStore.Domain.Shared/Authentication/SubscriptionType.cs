@@ -2,9 +2,6 @@
 
 public enum SubscriptionType
 {
-    
-    Admin,
-    User,
-    SubscriptionAdmin,
-    ServiceOwner
+   Trial,
+   Permanent,
 }

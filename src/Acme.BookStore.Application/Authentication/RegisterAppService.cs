@@ -85,6 +85,7 @@ public class RegisterAppService:BookStoreAppService
           };
         await _myTenantRepository.InsertAsync(myTenant);
         await CurrentUnitOfWork.SaveChangesAsync();
+        
         /*await _distributedEventBus.PublishAsync(
             new TenantCreatedEto
             {
@@ -110,12 +111,13 @@ public class RegisterAppService:BookStoreAppService
         }
       
     //  Console.WriteLine(CurrentTenant.GetId());
+    var user = await UserManager.FindByEmailAsync(input.EmailAddress);
       MyUser myUser = new MyUser()
       {
           UserName = input.UserName,
-          IdentityUserId = CurrentTenant.Id,
-          SubscriptionType = SubscriptionType.SubscriptionAdmin,
-          
+          IdentityUserId = user.Id,
+          UserType = UserType.Supervisor,
+          SubscriptionPlan = input.SubscriptionPlan
       };
       return ObjectMapper.Map<Tenant,TenantDto>(tenant);
     }
@@ -141,20 +143,20 @@ public class RegisterAppService:BookStoreAppService
         {
             IdentityUserId = identityUser.Id,
             UserName = identityUser.UserName,
-            Type = input.Type,
+            UserType = input.UserType,
             CreatorId = input.CreatorId,
-            SubscriptionType = input.SubscriptionType,
+            SubscriptionPlan = input.SubscriptionPlan,
         };
        await _myUserRepository.InsertAsync(myUser);
        
     }
   
-    public async  Task<SubscriptionType> Login(UserLoginInfo loginInfo)
+    public async  Task<UserType> Login(UserLoginInfo loginInfo)
     {
         AccountController controller = new AccountController(_signInManager, UserManager, _settingProvider, _identitySecurityLogManager, _options);
         Console.WriteLine(loginInfo.UserNameOrEmailAddress);
         var loginResult =   await controller.Login(loginInfo);
-        SubscriptionType type = SubscriptionType.User;
+        UserType type = UserType.User;
 
         if (loginResult.Result == LoginResultType.Success)
         {
@@ -178,8 +180,8 @@ public class RegisterAppService:BookStoreAppService
             Guid currentUserid = currentUser.Id;
             
             var user = await _myUserRepository.GetAsync(u => u.IdentityUserId == currentUser.Id);
-            type = user.SubscriptionType;
-            Console.WriteLine(user.SubscriptionType);
+            type = user.UserType;
+            Console.WriteLine(user.UserType);
 
         }
         
@@ -219,9 +221,9 @@ public class RegisterAppService:BookStoreAppService
         {
             IdentityUserId = identityUser.Id,
             UserName = identityUser.UserName,
-            Type = input.Type,
+            UserType = input.UserType,
             CreatorId = input.CreatorId,
-            SubscriptionType = input.SubscriptionType,
+            SubscriptionPlan = input.SubscriptionPlan,
         };
         await _myUserRepository.UpdateAsync(myUser);
        
